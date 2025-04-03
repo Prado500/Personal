@@ -19,7 +19,7 @@ from django.contrib import admin
 from django.urls import path
 from productos.views import (
     create_celular, list_celulares, update_celular, 
-    delete_celular, buscar_por_marca, buscar_por_rango_precio
+    delete_celular, buscar_por_marca, buscar_por_rango_precio, get_celular_by_sku
 )
 
 urlpatterns = [
@@ -27,10 +27,11 @@ urlpatterns = [
 
     path('celulares/create', create_celular, name='create_celular'),       # POST
     path('celulares', list_celulares, name='list_celulares'),             # GET
-    path('celulares/<str:nombre>/update', update_celular, name='update_celular'),   # PUT
-    path('celulares/<str:nombre>/delete', delete_celular, name='delete_celular'),   # DELETE
+    path('celulares/<str:sku>/update', update_celular, name='update_celular'),   # PUT
+    path('celulares/<str:sku>/delete', delete_celular, name='delete_celular'),   # DELETE
 
     # Búsquedas
     path('celulares/buscar-por-marca', buscar_por_marca, name='buscar_marca'),     
     path('celulares/buscar-por-precio', buscar_por_rango_precio, name='buscar_precio'),
+    path('celulares/<str:sku>', get_celular_by_sku, name='get_celular'),
 ]

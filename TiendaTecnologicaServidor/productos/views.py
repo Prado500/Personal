@@ -35,6 +35,7 @@ def create_celular(request):
     except json.JSONDecodeError:
         return JsonResponse({"error": "JSON inválido"}, status=400)
 
+    sku = data.get("sku")
     nombre = data.get("nombre")
     descripcion = data.get("descripcion")
     precio = data.get("precio")
@@ -46,11 +47,11 @@ def create_celular(request):
    
 
     # Validar datos mínimos
-    if not nombre or precio is None or stock is None:
+    if not sku or not nombre or precio is None or stock is None:
         return JsonResponse({"error": "Campos obligatorios faltantes"}, status=400)
 
     # Usamos el método de controlador
-    controlador.agregar_producto(nombre, descripcion, precio, stock, marca, capacidad, fecha, is_new)
+    controlador.agregar_producto(sku, nombre, descripcion, precio, stock, marca, capacidad, fecha, is_new)
     return JsonResponse({"message": "Celular creado con exito"}, status=201)
 
 
@@ -68,6 +69,7 @@ def list_celulares(request):
         # Convertimos el objeto a dict
         item = {
             "nombre": prod.get_nombre(),
+            "sku": prod.get_sku(),
             "descripcion": prod.get_descripcion(),
             "precio": prod.get_precio(),
             "stock": prod.get_stock(),
@@ -80,10 +82,31 @@ def list_celulares(request):
         resultado.append(item)
     return JsonResponse(resultado, safe=False, status=200)
 
+@csrf_exempt
+@require_http_methods(["GET"])
+def get_celular_by_sku(request, sku):
+    producto = controlador.buscar_producto(sku)
+    if producto is None:
+        return JsonResponse({"error": "No se encontró celular con ese SKU"}, status=404)
+
+    # Retorna todos los atributos
+    item = {
+        "sku": producto.get_sku(),
+        "nombre": producto.get_nombre(),
+        "descripcion": producto.get_descripcion(),
+        "precio": producto.get_precio(),
+        "stock": producto.get_stock(),
+        "marca": producto.get_marca(),
+        "capacidad": producto.get_capacidad(),
+        "fechaLanzamiento": producto.get_fechaLanzamiento(),
+        "isNew": getattr(producto, "is_new", True),
+        "precioConIva": producto.calcularPrecio()
+    }
+    return JsonResponse(item, status=200)
 
 @csrf_exempt
 @require_http_methods(["PUT"])
-def update_celular(request, nombre):
+def update_celular(request, sku):
     """
     Actualiza un celular existente buscándolo por nombre.
     Datos en JSON (solo lo que se desee actualizar):
@@ -107,7 +130,7 @@ def update_celular(request, nombre):
     es_nuevo = data.get("is_new")  # True/False
 
     controlador.actualizar_celular(
-        nombre,
+        sku,
         nuevo_precio=nuevo_precio,
         nueva_descripcion=nueva_descripcion,
         nuevo_stock=nuevo_stock,
@@ -117,21 +140,21 @@ def update_celular(request, nombre):
         es_nuevo=es_nuevo
     )
 
-    return JsonResponse({"message": f"Celular '{nombre}' actualizado."}, status=200)
+    return JsonResponse({"message": f"Celular '{sku}' actualizado."}, status=200)
 
 
 @csrf_exempt
 @require_http_methods(["DELETE"])
-def delete_celular(request, nombre):
+def delete_celular(request, sku):
     """
     Elimina un celular buscándolo por nombre.
     """
-    producto = controlador.buscar_producto(nombre)
+    producto = controlador.buscar_producto(sku)
     if producto is None:
-        return JsonResponse({"error": "No se encontró un celular con ese nombre"}, status=404)
+        return JsonResponse({"error": "No se encontró un celular con ese SKU"}, status=404)
 
     controlador.eliminar_producto(producto)
-    return JsonResponse({"message": f"Celular '{nombre}' eliminado con éxito"}, status=200)
+    return JsonResponse({"message": f"Celular con SKU '{sku}' eliminado con éxito"}, status=200)
 
 
 @require_http_methods(["GET"])
@@ -150,6 +173,7 @@ def buscar_por_marca(request):
         if prod.get_marca().lower() == marca.lower():
             item = {
             "nombre": prod.get_nombre(),
+            "sku": prod.get_sku(),
             "descripcion": prod.get_descripcion(),
             "precio": prod.get_precio(),
             "stock": prod.get_stock(),
@@ -183,6 +207,7 @@ def buscar_por_rango_precio(request):
         if minimo <= precio_base <= maximo:
             item = {
             "nombre": prod.get_nombre(),
+            "sku": prod.get_sku(),
             "descripcion": prod.get_descripcion(),
             "precio": prod.get_precio(),
             "stock": prod.get_stock(),

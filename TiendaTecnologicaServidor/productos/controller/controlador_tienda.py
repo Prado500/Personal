@@ -4,7 +4,7 @@ class ControladorTienda:
     def __init__(self, productos):
         self.productos = productos
 
-    def agregar_producto(self, nombre, descripcion, precio, stock, marca, capacidad, fechaLanzamiento, is_new=True):
+    def agregar_producto(self, sku, nombre, descripcion, precio, stock, marca, capacidad, fechaLanzamiento, is_new=True):
         """
         Crea un Celular y lo agrega a self.productos. 
         is_new indica si el celular es nuevo (True) o reacondicionado (False).
@@ -12,7 +12,7 @@ class ControladorTienda:
         """
         try:
             # Aquí pasamos is_new al constructor de Celular:
-            celular = Celular(nombre, descripcion, precio, stock, marca, capacidad, fechaLanzamiento, is_new)
+            celular = Celular(sku, nombre, descripcion, precio, stock, marca, capacidad, fechaLanzamiento, is_new)
             self.productos.append(celular)
         except ValueError as e:
             print(e)
@@ -31,16 +31,17 @@ class ControladorTienda:
         """
         print(self.productos[index].__str__())
 
-    def buscar_producto(self, nombre):
-        """ 
-        Devuelve un producto con 'nombre' o None si no existe. 
+        
+    def buscar_producto(self, sku):
         """
-        for i in self.productos:
-            if i.get_nombre() == nombre:
-                return i
+        Busca en la lista self.productos por 'sku' en lugar de 'nombre'.
+        """
+        for prod in self.productos:
+            if prod.get_sku() == sku:   # (// NUEVO)
+                return prod
         return None
 
-    def actualizar_celular(self, nombre, nuevo_precio=None, nueva_descripcion=None, 
+    def actualizar_celular(self, sku, nuevo_precio=None, nueva_descripcion=None, 
                            nuevo_stock=None, nueva_marca=None, nueva_capacidad=None, 
                            nueva_fecha_lanzamiento=None, es_nuevo=None):
         """
@@ -48,9 +49,9 @@ class ControladorTienda:
         Solo modifica los atributos que reciban un valor distinto de None.
         'es_nuevo' (bool) indica si el celular pasa a ser nuevo o reacondicionado.
         """
-        celular_obj = self.buscar_producto(nombre)
+        celular_obj = self.buscar_producto(sku)
         if celular_obj is None:
-            return print(f"No se encontró un celular con el nombre: {nombre}") 
+            return print(f"No se encontró un celular con el sku: {sku}") 
 
         # Actualizar atributos según parámetros no nulos:
         if nuevo_precio is not None:
@@ -69,7 +70,7 @@ class ControladorTienda:
             # Ajustamos is_new
             celular_obj.set_is_new(es_nuevo)
 
-        print(f"Celular '{nombre}' actualizado correctamente.")
+        print(f"Celular con SKU '{sku}' actualizado correctamente.")
 
     def eliminar_producto(self, producto):
         """ 
